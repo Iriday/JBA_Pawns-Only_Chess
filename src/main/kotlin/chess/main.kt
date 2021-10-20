@@ -1,5 +1,7 @@
 package chess
 
+// Controller
 fun main() {
-    print(generateDefaultFiled().joinToString("\n"))
+    outputIntro()
+    outputGameFiled(formatGameField(generateDefaultFiled()))
 }
