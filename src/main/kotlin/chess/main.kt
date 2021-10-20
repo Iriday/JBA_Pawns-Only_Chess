@@ -1,5 +1,5 @@
 package chess
 
 fun main() {
-    print("Come back")
+    print(generateDefaultFiled().joinToString("\n"))
 }
