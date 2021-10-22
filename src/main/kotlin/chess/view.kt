@@ -4,7 +4,6 @@ import kotlin.system.exitProcess
 
 private val verticalSep = Array(33) { i -> if (i % 4 == 0) "+" else "-" }.joinToString("")
 private val files = ('a'..'h').joinToString("   ", "    ", "  ")
-private val coordsPatters = "([a-h][1-8]){2}".toRegex()
 
 
 fun getFirstPlanerName(): String {
@@ -36,10 +35,12 @@ fun outputBye() = println("Bye!")
 
 fun outputInvalidInput() = println("Invalid input")
 
+fun outputNoPawnAt(pawn: String, at: String) = println("No $pawn at $at")
 
-fun formatGameField(field: List<List<String>>): List<String> {
 
-    fun stretchRows(field: List<List<String>>): List<List<String>> =
+fun formatGameField(field: Array<Array<String>>): List<String> {
+
+    fun stretchRows(field: Array<Array<String>>): List<List<String>> =
         field.map { row -> row.mapIndexed { i, cell -> if (i == 0) "| $cell |" else " $cell |" } }
 
     fun flattenRows(field: List<List<String>>): List<String> =
@@ -62,4 +63,3 @@ fun formatGameField(field: List<List<String>>): List<String> {
     return addFiles(addRanks(addVerticalSeps(flattenRows(stretchRows(field)))))
 }
 
-fun isCoordsValid(coords: String): Boolean = coords.matches(coordsPatters)
