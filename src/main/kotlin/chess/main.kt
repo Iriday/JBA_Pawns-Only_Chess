@@ -18,13 +18,10 @@ fun run(model: Model) {
     while (true) {
         val coords = getCoords(if (model.getCurrentPawn() == Pawn.WHITE) firstPlanerName else secondPlayerName)
 
-        when (model.isMovePossible(coords)) {
+        when (model.makeMove(coords)) {
             NO_CORRECT_PAWN -> outputNoPawnAt(model.getCurrentPawn().name.lowercase(), coords.substring(0, 2))
             INVALID_INPUT -> outputInvalidInput()
-            MOVE_IS_POSSIBLE -> {
-                model.makeMove(coords)
-                outputGameFiled(model.getGameFiled())
-            }
+            MOVE_IS_SUCCESSFUL -> outputGameFiled(model.getGameFiled())
         }
     }
 }

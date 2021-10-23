@@ -6,7 +6,7 @@ import kotlin.math.absoluteValue
 
 enum class Pawn { WHITE, BLACK }
 
-enum class Move { MOVE_IS_POSSIBLE, NO_CORRECT_PAWN, INVALID_INPUT }
+enum class Move { MOVE_IS_SUCCESSFUL, NO_CORRECT_PAWN, INVALID_INPUT }
 
 class Model {
     private val emptyCell = " "
@@ -16,23 +16,26 @@ class Model {
     private val field = generateDefaultFiled()
 
     private var isWhiteTurn = true
+    private var isPreviousMoveFirstVerticalDoubleMove = false
+    private var prevMoveCoords = Pair(-1, -1)
 
-    fun makeMove(coords: String) {
-        move(coordsToIndexes(coords.substring(0, 2)), coordsToIndexes(coords.substring(2, 4)))
-        isWhiteTurn = !isWhiteTurn
-    }
-
-    fun isMovePossible(coords: String): Move {
-        if (!isCoordsValid(coords)) return INVALID_INPUT
-
+    fun makeMove(coords: String): Move {
         val from = coordsToIndexes(coords.substring(0, 2))
         val to = coordsToIndexes(coords.substring(2, 4))
 
-        if (!isCellPresentAt(getCurrentPawnCell(), from)) return NO_CORRECT_PAWN
-
-        if (isSingleOrDoubleRegularMove(from, to) || isCapture(from, to)) return MOVE_IS_POSSIBLE
-
-        return INVALID_INPUT
+        return if (!isCoordsValid(coords)) {
+            INVALID_INPUT
+        } else if (!isCellPresentAt(getCurrentPawnCell(), from)) {
+            NO_CORRECT_PAWN
+        } else if (isSingleOrDoubleRegularMove(from, to) || isCapture(from, to)) {
+            move(from, to, field)
+            MOVE_IS_SUCCESSFUL
+        } else if (isEnPassant(from, to)) {
+            move(from, to, field, enPassant = true)
+            MOVE_IS_SUCCESSFUL
+        } else {
+            INVALID_INPUT
+        }
     }
 
     fun getGameFiled() = field
@@ -66,6 +69,11 @@ class Model {
         return (from.first - to.first).absoluteValue == 1 && (from.second - to.second).absoluteValue == 1
     }
 
+    private fun isPreviousPawnLocatedBellowDestination(to: Pair<Int, Int>): Boolean {
+        return isWhiteTurn && to.first + 1 == prevMoveCoords.first && to.second == prevMoveCoords.second
+                || !isWhiteTurn && to.first - 1 == prevMoveCoords.first && to.second == prevMoveCoords.second
+    }
+
     private fun isCapture(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
         return isCellPresentAt(getCurrentPawnCell(), from)
                 && isCellPresentAt(getOppositePawnCell(), to)
@@ -80,6 +88,14 @@ class Model {
                 && isSingleVerticalMove(from, to) || (isFirstMove(from) && isDoubleVerticalMove(from, to))
     }
 
+    private fun isEnPassant(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return isPreviousMoveFirstVerticalDoubleMove
+                && isCellPresentAt(getCurrentPawnCell(), from)
+                && isCellPresentAt(emptyCell, to)
+                && isForwardMove(from, to, isWhiteTurn)
+                && isSingleDiagonalMove(from, to)
+                && isPreviousPawnLocatedBellowDestination(to)
+    }
 
     private fun generateDefaultFiled(): Array<Array<String>> {
         return Array(8) { i -> Array(8) { if (i == 1) blackCell else if (i == 6) whiteCell else emptyCell } }
@@ -89,8 +105,19 @@ class Model {
         return Pair((singleCoords[1].digitToInt() - 8).absoluteValue, singleCoords[0] - 'a')
     }
 
-    private fun move(from: Pair<Int, Int>, to: Pair<Int, Int>) {
-        field[to.first][to.second] = field[from.first][from.second]
-        field[from.first][from.second] = emptyCell
+    private fun setCellAt(cell: String, to: Pair<Int, Int>, field: Array<Array<String>>) {
+        field[to.first][to.second] = cell
+    }
+
+    private fun move(from: Pair<Int, Int>, to: Pair<Int, Int>, field: Array<Array<String>>, enPassant: Boolean = false) {
+        isPreviousMoveFirstVerticalDoubleMove = isFirstMove(from) && isDoubleVerticalMove(from, to)
+
+        setCellAt(field[from.first][from.second], to, field)
+        setCellAt(emptyCell, from, field)
+
+        if (enPassant) setCellAt(emptyCell, prevMoveCoords, field)
+
+        prevMoveCoords = to
+        isWhiteTurn = !isWhiteTurn
     }
 }
