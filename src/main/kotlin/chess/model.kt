@@ -26,18 +26,13 @@ class Model {
         if (!isCoordsValid(coords)) return INVALID_INPUT
 
         val from = coordsToIndexes(coords.substring(0, 2))
-
         val to = coordsToIndexes(coords.substring(2, 4))
 
-        return if (isCellPresentAt(getCurrentPawnCell(), from)) {
-            if (isCellPresentAt(emptyCell, to) && isDirectionValid(from, to) && isStepValid(from, to)) {
-                MOVE_IS_POSSIBLE
-            } else {
-                INVALID_INPUT
-            }
-        } else {
-            NO_CORRECT_PAWN
-        }
+        if (!isCellPresentAt(getCurrentPawnCell(), from)) return NO_CORRECT_PAWN
+
+        if (isSingleOrDoubleRegularMove(from, to) || isCapture(from, to)) return MOVE_IS_POSSIBLE
+
+        return INVALID_INPUT
     }
 
     fun getGameFiled() = field
@@ -50,19 +45,41 @@ class Model {
 
     private fun getCurrentPawnCell() = if (isWhiteTurn) whiteCell else blackCell
 
+    private fun getOppositePawnCell() = if (!isWhiteTurn) whiteCell else blackCell
+
     private fun isFirstMove(from: Pair<Int, Int>) = from.first == 1 || from.first == 6
 
+    private fun isForwardMove(from: Pair<Int, Int>, to: Pair<Int, Int>, isWhiteTurn: Boolean): Boolean {
+        return isWhiteTurn && from.first > to.first || !isWhiteTurn && from.first < to.first
 
-    private fun isStepValid(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return (from.first - to.first).absoluteValue == 1
-                || (isFirstMove(from) && (from.first - to.first).absoluteValue == 2)
-                && from.second == to.second
     }
 
-    private fun isDirectionValid(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return (isWhiteTurn && from.first > to.first || !isWhiteTurn && from.first < to.first)
-                && from.second == to.second
+    private fun isSingleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return (from.first - to.first).absoluteValue == 1 && from.second == to.second
     }
+
+    private fun isDoubleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return (from.first - to.first).absoluteValue == 2 && from.second == to.second
+    }
+
+    private fun isSingleDiagonalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return (from.first - to.first).absoluteValue == 1 && (from.second - to.second).absoluteValue == 1
+    }
+
+    private fun isCapture(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return isCellPresentAt(getCurrentPawnCell(), from)
+                && isCellPresentAt(getOppositePawnCell(), to)
+                && isForwardMove(from, to, isWhiteTurn)
+                && isSingleDiagonalMove(from, to)
+    }
+
+    private fun isSingleOrDoubleRegularMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+        return isCellPresentAt(getCurrentPawnCell(), from)
+                && isCellPresentAt(emptyCell, to)
+                && isForwardMove(from, to, isWhiteTurn)
+                && isSingleVerticalMove(from, to) || (isFirstMove(from) && isDoubleVerticalMove(from, to))
+    }
+
 
     private fun generateDefaultFiled(): Array<Array<String>> {
         return Array(8) { i -> Array(8) { if (i == 1) blackCell else if (i == 6) whiteCell else emptyCell } }
