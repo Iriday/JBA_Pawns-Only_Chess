@@ -17,7 +17,7 @@ fun getSecondPlanerName(): String {
 }
 
 fun getCoords(playerName: String): String {
-    println("$playerName's turn:")
+    println("\n$playerName's turn:")
     val coords = readLine()!!.lowercase()
 
     if (coords == "exit") {
@@ -29,16 +29,16 @@ fun getCoords(playerName: String): String {
 
 fun outputIntro() = println("Pawns-Only Chess")
 
-fun outputGameFiled(field: List<String>) = field.forEach(::println)
+fun outputGameFiled(field: Array<Array<String>>) = formatGameField(field).forEach(::println)
 
 fun outputBye() = println("Bye!")
 
 fun outputInvalidInput() = println("Invalid input")
 
-fun outputNoPawnAt(pawn: String, at: String) = println("No $pawn at $at")
+fun outputNoPawnAt(pawn: String, at: String) = println("No $pawn pawn at $at")
 
 
-fun formatGameField(field: Array<Array<String>>): List<String> {
+private fun formatGameField(field: Array<Array<String>>): List<String> {
 
     fun stretchRows(field: Array<Array<String>>): List<List<String>> =
         field.map { row -> row.mapIndexed { i, cell -> if (i == 0) "| $cell |" else " $cell |" } }

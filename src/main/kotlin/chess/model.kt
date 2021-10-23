@@ -1,11 +1,14 @@
 package chess
 
+import chess.Move.*
+import chess.Pawn.*
 import kotlin.math.absoluteValue
 
+enum class Pawn { WHITE, BLACK }
+
+enum class Move { MOVE_IS_POSSIBLE, NO_CORRECT_PAWN, INVALID_INPUT }
 
 class Model {
-    private val whitePawn = "white"
-    private val blackPawn = "black"
     private val emptyCell = " "
     private val blackCell = "B"
     private val whiteCell = "W"
@@ -19,27 +22,27 @@ class Model {
         isWhiteTurn = !isWhiteTurn
     }
 
-    fun isMovePossible(coords: String): MoveOutcome {
-        if (!isCoordsValid(coords)) return MoveOutcome.INVALID_INPUT
+    fun isMovePossible(coords: String): Move {
+        if (!isCoordsValid(coords)) return INVALID_INPUT
 
         val from = coordsToIndexes(coords.substring(0, 2))
 
         val to = coordsToIndexes(coords.substring(2, 4))
 
-        if (isCellPresentAt(getCurrentPawnCell(), from)) {
+        return if (isCellPresentAt(getCurrentPawnCell(), from)) {
             if (isCellPresentAt(emptyCell, to) && isDirectionValid(from, to) && isStepValid(from, to)) {
-                return MoveOutcome.MOVE_IS_POSSIBLE
+                MOVE_IS_POSSIBLE
             } else {
-                return MoveOutcome.INVALID_INPUT
+                INVALID_INPUT
             }
         } else {
-            return MoveOutcome.NO_CORRECT_PAWN
+            NO_CORRECT_PAWN
         }
     }
 
     fun getGameFiled() = field
 
-    fun getCurrentPawn() = if (isWhiteTurn) whitePawn else blackPawn
+    fun getCurrentPawn() = if (isWhiteTurn) WHITE else BLACK
 
     private fun isCoordsValid(coords: String): Boolean = coords.matches(coordsPatters)
 
@@ -48,6 +51,7 @@ class Model {
     private fun getCurrentPawnCell() = if (isWhiteTurn) whiteCell else blackCell
 
     private fun isFirstMove(from: Pair<Int, Int>) = from.first == 1 || from.first == 6
+
 
     private fun isStepValid(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
         return (from.first - to.first).absoluteValue == 1

@@ -1,5 +1,7 @@
 package chess
 
+import chess.Move.*
+
 // Controller
 fun main() {
     run(Model())
@@ -11,17 +13,17 @@ fun run(model: Model) {
     val firstPlanerName = getFirstPlanerName()
     val secondPlayerName = getSecondPlanerName()
 
-    outputGameFiled(formatGameField(model.getGameFiled()))
+    outputGameFiled(model.getGameFiled())
 
     while (true) {
-        val coords = getCoords(if (model.getCurrentPawn() == "white") firstPlanerName else secondPlayerName)
+        val coords = getCoords(if (model.getCurrentPawn() == Pawn.WHITE) firstPlanerName else secondPlayerName)
 
         when (model.isMovePossible(coords)) {
-            MoveOutcome.NO_CORRECT_PAWN -> outputNoPawnAt(model.getCurrentPawn(), coords.substring(0, 2))
-            MoveOutcome.INVALID_INPUT -> outputInvalidInput()
-            MoveOutcome.MOVE_IS_POSSIBLE -> {
+            NO_CORRECT_PAWN -> outputNoPawnAt(model.getCurrentPawn().name.lowercase(), coords.substring(0, 2))
+            INVALID_INPUT -> outputInvalidInput()
+            MOVE_IS_POSSIBLE -> {
                 model.makeMove(coords)
-                outputGameFiled(formatGameField(model.getGameFiled()))
+                outputGameFiled(model.getGameFiled())
             }
         }
     }
