@@ -37,6 +37,8 @@ fun outputInvalidInput() = println("Invalid input")
 
 fun outputNoPawnAt(pawn: String, at: String) = println("No $pawn pawn at $at")
 
+fun outputPawnWins(pawn: String) = println("\n$pawn Wins!")
+
 
 private fun formatGameField(field: Array<Array<String>>): List<String> {
 

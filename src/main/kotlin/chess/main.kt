@@ -1,6 +1,7 @@
 package chess
 
 import chess.Move.*
+import kotlin.system.exitProcess
 
 // Controller
 fun main() {
@@ -22,6 +23,11 @@ fun run(model: Model) {
             NO_CORRECT_PAWN -> outputNoPawnAt(model.getCurrentPawn().name.lowercase(), coords.substring(0, 2))
             INVALID_INPUT -> outputInvalidInput()
             MOVE_IS_SUCCESSFUL -> outputGameFiled(model.getGameFiled())
+            BLACK_WINS, WHITE_WINS -> {
+                outputPawnWins(model.getOppositePawn().name.lowercase().capitalize())
+                outputBye()
+                exitProcess(0)
+            }
         }
     }
 }
