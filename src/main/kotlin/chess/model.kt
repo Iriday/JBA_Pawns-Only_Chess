@@ -20,12 +20,12 @@ class Model {
     private var prevMoveCoords = Pair(-1, -1)
 
     fun makeMove(coords: String): Move {
+        if (!isCoordsValid(coords)) return INVALID_INPUT
+
         val from = coordsToIndexes(coords.substring(0, 2))
         val to = coordsToIndexes(coords.substring(2, 4))
 
-        return if (!isCoordsValid(coords)) {
-            INVALID_INPUT
-        } else if (!isCellPresentAt(getCurrentPawnCell(), from)) {
+        return if (!isCellPresentAt(getCurrentPawnCell(), from)) {
             NO_CORRECT_PAWN
         } else if (isSingleOrDoubleRegularMove(from, to) || isCapture(from, to)) {
             move(from, to, field)
