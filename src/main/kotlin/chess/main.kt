@@ -24,7 +24,14 @@ fun run(model: Model) {
             INVALID_INPUT -> outputInvalidInput()
             MOVE_IS_SUCCESSFUL -> outputGameFiled(model.getGameFiled())
             BLACK_WINS, WHITE_WINS -> {
+                outputGameFiled(model.getGameFiled())
                 outputPawnWins(model.getOppositePawn().name.lowercase().capitalize())
+                outputBye()
+                exitProcess(0)
+            }
+            STALEMATE -> {
+                outputGameFiled(model.getGameFiled())
+                outputStalemate()
                 outputBye()
                 exitProcess(0)
             }
