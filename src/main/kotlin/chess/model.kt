@@ -25,22 +25,24 @@ class Model {
         val from = coordsToIndexes(coords.substring(0, 2))
         val to = coordsToIndexes(coords.substring(2, 4))
 
-        return if (!isCellPresentAt(getCurrentPawnCell(), from)) {
+        return if (!isCellPresentAt(getCurrentPawnCell(), from, field)) {
             NO_CORRECT_PAWN
         } else if (isSingleRegularMove(from, to) || isDoubleRegularMove(from, to) || isCapture(from, to)) {
-            move(from, to, field)
+            move(from, to)
+
             return if (isWin(prevMoveCoords, getCurrentPawnCell(), field)) {
                 if (getCurrentPawn() == WHITE) return BLACK_WINS else WHITE_WINS
-            } else if (isStalemate(field, isWhiteTurn)) {
+            } else if (isStalemate()) {
                 return STALEMATE
             } else {
                 MOVE_IS_SUCCESSFUL
             }
         } else if (isEnPassant(from, to)) {
-            move(from, to, field, enPassant = true)
+            move(from, to, enPassant = true)
+
             if (isWin(prevMoveCoords, getCurrentPawnCell(), field)) {
                 if (getCurrentPawn() == WHITE) return BLACK_WINS else WHITE_WINS
-            } else if (isStalemate(field, isWhiteTurn)) {
+            } else if (isStalemate()) {
                 return STALEMATE
             } else {
                 MOVE_IS_SUCCESSFUL
@@ -54,53 +56,14 @@ class Model {
 
     fun getCurrentPawn() = if (isWhiteTurn) WHITE else BLACK
 
-    fun getOppositePawn() = if(isWhiteTurn) BLACK else WHITE
+    fun getOppositePawn() = if (isWhiteTurn) BLACK else WHITE
+
 
     private fun getCurrentPawnCell() = if (isWhiteTurn) whiteCell else blackCell
 
     private fun getOppositePawnCell() = if (!isWhiteTurn) whiteCell else blackCell
 
-    private fun getAllCellCoords(cell: String, field: Array<Array<String>>): MutableList<Pair<Int, Int>> {
-        val coords = mutableListOf<Pair<Int, Int>>()
-        for (i in field.indices) {
-            for (j in field[i].indices) {
-                if (field[i][j] == cell) {
-                    coords += Pair(i, j)
-                }
-            }
-        }
-        return coords
-    }
-
     private fun isCoordsValid(coords: String): Boolean = coords.matches(coordsPatters)
-
-    private fun isCellPresentAt(cell: String, coords: Pair<Int, Int>) = field[coords.first][coords.second] == cell
-
-    private fun isFieldContainsCell(field: Array<Array<String>>, cell: String): Boolean {
-        for (row in field) {
-            if (row.contains(cell)) return true
-        }
-        return false
-    }
-
-    private fun isFirstMove(from: Pair<Int, Int>) = from.first == 1 || from.first == 6
-
-    private fun isForwardMove(from: Pair<Int, Int>, to: Pair<Int, Int>, isWhiteTurn: Boolean): Boolean {
-        return isWhiteTurn && from.first > to.first || !isWhiteTurn && from.first < to.first
-
-    }
-
-    private fun isSingleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return (from.first - to.first).absoluteValue == 1 && from.second == to.second
-    }
-
-    private fun isDoubleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return (from.first - to.first).absoluteValue == 2 && from.second == to.second
-    }
-
-    private fun isSingleDiagonalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return (from.first - to.first).absoluteValue == 1 && (from.second - to.second).absoluteValue == 1
-    }
 
     private fun isPreviousPawnLocatedBellowDestination(to: Pair<Int, Int>): Boolean {
         return isWhiteTurn && to.first + 1 == prevMoveCoords.first && to.second == prevMoveCoords.second
@@ -108,22 +71,22 @@ class Model {
     }
 
     private fun isCapture(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return isCellPresentAt(getCurrentPawnCell(), from)
-                && isCellPresentAt(getOppositePawnCell(), to)
+        return isCellPresentAt(getCurrentPawnCell(), from, field)
+                && isCellPresentAt(getOppositePawnCell(), to, field)
                 && isForwardMove(from, to, isWhiteTurn)
                 && isSingleDiagonalMove(from, to)
     }
 
     private fun isSingleRegularMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return isCellPresentAt(getCurrentPawnCell(), from)
-                && isCellPresentAt(emptyCell, to)
+        return isCellPresentAt(getCurrentPawnCell(), from, field)
+                && isCellPresentAt(emptyCell, to, field)
                 && isForwardMove(from, to, isWhiteTurn)
                 && isSingleVerticalMove(from, to)
     }
 
     private fun isDoubleRegularMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
-        return isCellPresentAt(getCurrentPawnCell(), from)
-                && isCellPresentAt(emptyCell, to)
+        return isCellPresentAt(getCurrentPawnCell(), from, field)
+                && isCellPresentAt(emptyCell, to, field)
                 && isForwardMove(from, to, isWhiteTurn)
                 && isFirstMove(from)
                 && isDoubleVerticalMove(from, to)
@@ -131,18 +94,18 @@ class Model {
 
     private fun isEnPassant(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
         return isPreviousMoveFirstVerticalDoubleMove
-                && isCellPresentAt(getCurrentPawnCell(), from)
-                && isCellPresentAt(emptyCell, to)
+                && isCellPresentAt(getCurrentPawnCell(), from, field)
+                && isCellPresentAt(emptyCell, to, field)
                 && isForwardMove(from, to, isWhiteTurn)
                 && isSingleDiagonalMove(from, to)
                 && isPreviousPawnLocatedBellowDestination(to)
     }
 
-    private fun isWin(prevMoveCoords: Pair<Int, Int>, currPawnCell: String, field: Array<Array<String>>): Boolean {
-        return prevMoveCoords.first == 0 || prevMoveCoords.first == 7 || !isFieldContainsCell(field, currPawnCell)
+    private fun generateDefaultFiled(): Array<Array<String>> {
+        return Array(8) { i -> Array(8) { if (i == 1) blackCell else if (i == 6) whiteCell else emptyCell } }
     }
 
-    private fun isStalemate(field: Array<Array<String>>, whiteMove: Boolean): Boolean {
+    private fun isStalemate(): Boolean {
 
         fun isThereCellAbove(cell: String, coords: Pair<Int, Int>, field: Array<Array<String>>): Boolean {
             return coords.first > 0 && field[coords.first - 1][coords.second] == cell
@@ -173,7 +136,7 @@ class Model {
 
 
         for (p in curPawnCellAllCoords) {
-            if (whiteMove) {
+            if (isWhiteTurn) {
                 if (isThereCellAbove(emptyCell, p, field)
                     || isThereCellUpLeft(oppositePawnCell, p, field)
                     || isThereCellUpRight(oppositePawnCell, p, field)
@@ -188,19 +151,7 @@ class Model {
         return true
     }
 
-    private fun generateDefaultFiled(): Array<Array<String>> {
-        return Array(8) { i -> Array(8) { if (i == 1) blackCell else if (i == 6) whiteCell else emptyCell } }
-    }
-
-    private fun coordsToIndexes(singleCoords: String): Pair<Int, Int> {
-        return Pair((singleCoords[1].digitToInt() - 8).absoluteValue, singleCoords[0] - 'a')
-    }
-
-    private fun setCellAt(cell: String, to: Pair<Int, Int>, field: Array<Array<String>>) {
-        field[to.first][to.second] = cell
-    }
-
-    private fun move(from: Pair<Int, Int>, to: Pair<Int, Int>, field: Array<Array<String>>, enPassant: Boolean = false){
+    private fun move(from: Pair<Int, Int>, to: Pair<Int, Int>, enPassant: Boolean = false) {
         isPreviousMoveFirstVerticalDoubleMove = isFirstMove(from) && isDoubleVerticalMove(from, to)
 
         setCellAt(field[from.first][from.second], to, field)
@@ -210,5 +161,62 @@ class Model {
 
         prevMoveCoords = to
         isWhiteTurn = !isWhiteTurn
+    }
+
+    private companion object HelperFunctions {
+
+        private fun isCellPresentAt(cell: String, coords: Pair<Int, Int>, field: Array<Array<String>>): Boolean {
+            return field[coords.first][coords.second] == cell
+        }
+
+        private fun isFieldContainsCell(field: Array<Array<String>>, cell: String): Boolean {
+            for (row in field) {
+                if (row.contains(cell)) return true
+            }
+            return false
+        }
+
+        private fun isFirstMove(from: Pair<Int, Int>) = from.first == 1 || from.first == 6
+
+        private fun isForwardMove(from: Pair<Int, Int>, to: Pair<Int, Int>, isWhiteTurn: Boolean): Boolean {
+            return isWhiteTurn && from.first > to.first || !isWhiteTurn && from.first < to.first
+
+        }
+
+        private fun isSingleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+            return (from.first - to.first).absoluteValue == 1 && from.second == to.second
+        }
+
+        private fun isDoubleVerticalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+            return (from.first - to.first).absoluteValue == 2 && from.second == to.second
+        }
+
+        private fun isSingleDiagonalMove(from: Pair<Int, Int>, to: Pair<Int, Int>): Boolean {
+            return (from.first - to.first).absoluteValue == 1 && (from.second - to.second).absoluteValue == 1
+        }
+
+        private fun getAllCellCoords(cell: String, field: Array<Array<String>>): MutableList<Pair<Int, Int>> {
+            val coords = mutableListOf<Pair<Int, Int>>()
+            for (i in field.indices) {
+                for (j in field[i].indices) {
+                    if (field[i][j] == cell) {
+                        coords += Pair(i, j)
+                    }
+                }
+            }
+            return coords
+        }
+
+        private fun isWin(prevMoveCoords: Pair<Int, Int>, currPawnCell: String, field: Array<Array<String>>): Boolean {
+            return prevMoveCoords.first == 0 || prevMoveCoords.first == 7 || !isFieldContainsCell(field, currPawnCell)
+        }
+
+        private fun coordsToIndexes(singleCoords: String): Pair<Int, Int> {
+            return Pair((singleCoords[1].digitToInt() - 8).absoluteValue, singleCoords[0] - 'a')
+        }
+
+        private fun setCellAt(cell: String, to: Pair<Int, Int>, field: Array<Array<String>>) {
+            field[to.first][to.second] = cell
+        }
     }
 }
